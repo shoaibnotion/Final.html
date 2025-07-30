@@ -1,111 +1,138 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Islamic Calendar Widget</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #eef3f7;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .widget {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-      padding: 24px;
-      width: 320px;
-      text-align: center;
-      transition: all 0.3s ease;
-    }
-    .widget h1 {
-      margin-bottom: 10px;
-      font-size: 22px;
-    }
-    .date, .prayer-times {
-      margin-bottom: 12px;
-      font-size: 15px;
-      color: #333;
-    }
-    .prayer-times {
-      text-align: left;
-    }
-    .prayer-times div {
-      margin: 4px 0;
-    }
-    input[type="text"] {
-      width: 60%;
-      padding: 5px;
-      margin: 5px;
-      font-size: 14px;
-    }
-    button {
-      padding: 5px 10px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    @media (max-width: 400px) {
-      .widget {
-        width: 90%;
-        padding: 20px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="widget">
-    <h1>📅 Islamic Date Today</h1>
-    <input type="text" id="cityInput" placeholder="Enter city" value="Delhi">
-    <input type="text" id="countryInput" placeholder="Enter country" value="India">
-    <button onclick="loadDatesAndPrayers()">Update</button>
-    <div class="date" id="hijriDate">Loading Hijri date...</div>
-    <div class="date" id="gregDate">Loading Gregorian date...</div>
-    <div class="prayer-times" id="prayerTimes">Loading prayer times...</div>
-  </div>
-  <script>
-    async function loadDatesAndPrayers() {
-      try {
-        const today = new Date();
-        const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
-        const city = document.getElementById('cityInput').value;
-        const country = document.getElementById('countryInput').value;
-
-        // Fetch Hijri and Gregorian dates
-        const hijriRes = await fetch(`https://api.aladhan.com/v1/gToH?date=${dateStr}`);
-        const hijriData = await hijriRes.json();
-        if (!hijriData.data || !hijriData.data.hijri || !hijriData.data.gregorian) throw new Error("Hijri API error");
-        const hijri = hijriData.data.hijri;
-        const greg = hijriData.data.gregorian;
-        document.getElementById('hijriDate').textContent =
-          `${hijri.weekday.en}, ${hijri.day} ${hijri.month.en} ${hijri.year} AH`;
-        document.getElementById('gregDate').textContent =
-          `${greg.weekday.en}, ${greg.day} ${greg.month.en} ${greg.year}`;
-
-        // Fetch Prayer Times
-        const prayerRes = await fetch(
-          `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`
-        );
-        const prayerData = await prayerRes.json();
-        if (!prayerData.data || !prayerData.data.timings) throw new Error("Prayer API error");
-        const timings = prayerData.data.timings;
-        const mainPrayers = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
-        const prayerHTML = mainPrayers
-          .map(name => `<div><strong>${name}</strong>: ${timings[name]}</div>`)
-          .join('');
-        document.getElementById('prayerTimes').innerHTML = prayerHTML;
-      } catch (error) {
-        document.getElementById('hijriDate').textContent = "Failed to load Islamic date.";
-        document.getElementById('gregDate').textContent = "Failed to load Gregorian date.";
-        document.getElementById('prayerTimes').textContent = "Failed to load prayer times.";
-      }
-    }
-    window.onload = loadDatesAndPrayers;
-  </script>
-</body>
-</html>
+<div id="webcrumbs"> 
+        	<div className="bg-slate-100 min-h-screen flex justify-center items-center p-4">
+	  <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm text-center transition-all duration-300 hover:shadow-2xl">
+	    <h1  className="text-2xl font-bold mb-4 text-slate-800">📅 Islamic Date Today</h1>
+	    
+	    <div className="mb-4 space-y-2">
+	      <input 
+	        type="text" 
+	        id="cityInput" 
+	        placeholder="Enter city" 
+	        defaultValue="Delhi"
+	        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all duration-200"
+	      />
+	      <input 
+	        type="text" 
+	        id="countryInput" 
+	        placeholder="Enter country" 
+	        defaultValue="India"
+	        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all duration-200"
+	      />
+	      <button 
+	        onClick={(e) => {
+	          const cityInput = document.getElementById('cityInput');
+	          const countryInput = document.getElementById('countryInput');
+	          const hijriDate = document.getElementById('hijriDate');
+	          const gregDate = document.getElementById('gregDate');
+	          const prayerTimes = document.getElementById('prayerTimes');
+	          
+	          const loadData = async () => {
+	            try {
+	              const today = new Date();
+	              const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+	              const city = cityInput.value;
+	              const country = countryInput.value;
+	
+	              hijriDate.textContent = "Loading Hijri date...";
+	              gregDate.textContent = "Loading Gregorian date...";
+	              prayerTimes.innerHTML = "Loading prayer times...";
+	
+	              const hijriRes = await fetch(`https://api.aladhan.com/v1/gToH?date=${dateStr}`);
+	              const hijriData = await hijriRes.json();
+	              
+	              if (hijriData.data && hijriData.data.hijri && hijriData.data.gregorian) {
+	                const hijri = hijriData.data.hijri;
+	                const greg = hijriData.data.gregorian;
+	                hijriDate.textContent = `${hijri.weekday.en}, ${hijri.day} ${hijri.month.en} ${hijri.year} AH`;
+	                gregDate.textContent = `${greg.weekday.en}, ${greg.day} ${greg.month.en} ${greg.year}`;
+	              }
+	
+	              const prayerRes = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`);
+	              const prayerData = await prayerRes.json();
+	              
+	              if (prayerData.data && prayerData.data.timings) {
+	                const timings = prayerData.data.timings;
+	                const mainPrayers = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
+	                const prayerHTML = mainPrayers
+	                  .map(name => `<div class="flex justify-between py-1"><span class="font-medium">${name}</span><span>${timings[name]}</span></div>`)
+	                  .join('');
+	                prayerTimes.innerHTML = prayerHTML;
+	              }
+	            } catch (error) {
+	              hijriDate.textContent = "Failed to load Islamic date.";
+	              gregDate.textContent = "Failed to load Gregorian date.";
+	              prayerTimes.innerHTML = "Failed to load prayer times.";
+	            }
+	          };
+	          
+	          loadData();
+	        }}
+	        className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 transform hover:scale-105"
+	      >
+	        Update
+	      </button>
+	    </div>
+	
+	    <div className="space-y-3">
+	      <div id="hijriDate" className="text-lg font-medium text-slate-700 bg-primary-50 rounded-lg p-3">
+	        Loading Hijri date...
+	      </div>
+	      
+	      <div id="gregDate" className="text-lg font-medium text-slate-700 bg-slate-50 rounded-lg p-3">
+	        Loading Gregorian date...
+	      </div>
+	      
+	      <div className="flex flex-col gap-4"><h3 className="font-semibold text-slate-800 mb-3">Prayer Times</h3>
+	<div className="bg-slate-50 rounded-lg p-4">
+	        
+	        <div  id="prayerTimes" className="text-sm text-slate-600 space-y-1">
+	          Loading prayer times...
+	        </div>
+	      </div></div>
+	    </div>
+	  </div>
+	  
+	  <script dangerouslySetInnerHTML={{
+	    __html: `
+	      window.addEventListener('load', function() {
+	        const loadData = async () => {
+	          try {
+	            const today = new Date();
+	            const dateStr = today.getDate() + '-' + (today.getMonth() + 1) + '-' + today.getFullYear();
+	            const city = 'Delhi';
+	            const country = 'India';
+	
+	            const hijriRes = await fetch('https://api.aladhan.com/v1/gToH?date=' + dateStr);
+	            const hijriData = await hijriRes.json();
+	            
+	            if (hijriData.data && hijriData.data.hijri && hijriData.data.gregorian) {
+	              const hijri = hijriData.data.hijri;
+	              const greg = hijriData.data.gregorian;
+	              document.getElementById('hijriDate').textContent = hijri.weekday.en + ', ' + hijri.day + ' ' + hijri.month.en + ' ' + hijri.year + ' AH';
+	              document.getElementById('gregDate').textContent = greg.weekday.en + ', ' + greg.day + ' ' + greg.month.en + ' ' + greg.year;
+	            }
+	
+	            const prayerRes = await fetch('https://api.aladhan.com/v1/timingsByCity?city=' + encodeURIComponent(city) + '&country=' + encodeURIComponent(country));
+	            const prayerData = await prayerRes.json();
+	            
+	            if (prayerData.data && prayerData.data.timings) {
+	              const timings = prayerData.data.timings;
+	              const mainPrayers = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
+	              const prayerHTML = mainPrayers
+	                .map(name => '<div class="flex justify-between py-1"><span class="font-medium">' + name + '</span><span>' + timings[name] + '</span></div>')
+	                .join('');
+	              document.getElementById('prayerTimes').innerHTML = prayerHTML;
+	            }
+	          } catch (error) {
+	            document.getElementById('hijriDate').textContent = "Failed to load Islamic date.";
+	            document.getElementById('gregDate').textContent = "Failed to load Gregorian date.";
+	            document.getElementById('prayerTimes').innerHTML = "Failed to load prayer times.";
+	          }
+	        };
+	        
+	        loadData();
+	      });
+	    `
+	  }} />
+	</div> 
+        </div>

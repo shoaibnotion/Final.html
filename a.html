@@ -75,18 +75,37 @@
         const dateStr = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
         const city = document.getElementById('cityInput').value;
         const country = document.getElementById('countryInput').value;
+
+        // Fetch Hijri and Gregorian dates
         const hijriRes = await fetch(`https://api.aladhan.com/v1/gToH?date=${dateStr}`);
         const hijriData = await hijriRes.json();
+        if (!hijriData.data || !hijriData.data.hijri || !hijriData.data.gregorian) throw new Error("Hijri API error");
         const hijri = hijriData.data.hijri;
         const greg = hijriData.data.gregorian;
-        document.getElementById('hijriDate').textContent = `${hijri.weekday.en}, ${hijri.day} ${hijri.month.en} ${hijri.year} AH`;
-        document.getElementById('gregDate').textContent = `${greg.weekday.en}, ${greg.day} ${greg.month.en} ${greg.year}`;
-        const prayerRes = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=${country}`);
+        document.getElementById('hijriDate').textContent =
+          `${hijri.weekday.en}, ${hijri.day} ${hijri.month.en} ${hijri.year} AH`;
+        document.getElementById('gregDate').textContent =
+          `${greg.weekday.en}, ${greg.day} ${greg.month.en} ${greg.year}`;
+
+        // Fetch Prayer Times
+        const prayerRes = await fetch(
+          `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`
+        );
         const prayerData = await prayerRes.json();
+        if (!prayerData.data || !prayerData.data.timings) throw new Error("Prayer API error");
         const timings = prayerData.data.timings;
         const mainPrayers = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
-        const prayerHTML = mainPrayers.map(name => `<div><strong>${name}</strong>: ${timings[name]}</div>`).join('');
+        const prayerHTML = mainPrayers
+          .map(name => `<div><strong>${name}</strong>: ${timings[name]}</div>`)
+          .join('');
         document.getElementById('prayerTimes').innerHTML = prayerHTML;
       } catch (error) {
         document.getElementById('hijriDate').textContent = "Failed to load Islamic date.";
-        document.getElementById
+        document.getElementById('gregDate').textContent = "Failed to load Gregorian date.";
+        document.getElementById('prayerTimes').textContent = "Failed to load prayer times.";
+      }
+    }
+    window.onload = loadDatesAndPrayers;
+  </script>
+</body>
+</html>
